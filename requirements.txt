@@ -1,0 +1,36 @@
+# Multimedia DBMS Dependencies - Production (CPU-Only)
+# Optimized for aaPanel deployment without GPU
+
+# Core Framework
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-CORS==4.0.0
+python-dotenv==1.0.0
+gunicorn==21.2.0
+
+# Database
+psycopg2-binary==2.9.9
+SQLAlchemy==2.0.23
+
+# Deep Learning - CPU-only (much smaller, faster install)
+--index-url https://download.pytorch.org/whl/cpu
+torch==2.1.2+cpu
+torchvision==0.16.2+cpu
+
+# Image Processing
+opencv-python-headless==4.9.0.80
+Pillow==10.1.0
+
+# Audio Processing
+librosa==0.10.1
+soundfile==0.12.1
+numpy==1.26.2
+scipy==1.11.4
+
+# Video Processing
+moviepy==1.0.3
+
+# Utilities
+werkzeug==3.0.1
+requests==2.31.0
+

@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Multimedia DBMS - Content-based multimedia search and management system">
+    <title>Multimedia DBMS</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Varela+Round&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css?v=10">
+    <!-- Chart.js for feature visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">🎬</span>
+            <span class="brand-text">Multimedia DBMS</span>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link active" data-page="home">
+                <span>📚 Gallery</span>
+            </a>
+            <a href="#" class="nav-link" data-page="upload">
+                <span>⬆️ Upload</span>
+            </a>
+            <a href="#" class="nav-link" data-page="search">
+                <span>🔍 Search</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home/Gallery Page -->
+        <section id="home-page" class="page active">
+            <div class="page-header">
+                <h1>Media Gallery</h1>
+                <p class="subtitle">Browse and manage your multimedia collection</p>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-type="all" onclick="filterMedia('all', this)">All</button>
+                    <button class="filter-btn" data-type="image" onclick="filterMedia('image', this)">🖼️
+                        Images</button>
+                    <button class="filter-btn" data-type="audio" onclick="filterMedia('audio', this)">🎵 Audio</button>
+                    <button class="filter-btn" data-type="video" onclick="filterMedia('video', this)">📹 Video</button>
+                </div>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid">⊞</button>
+                    <button class="view-btn" data-view="list">☰</button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <span class="stat-icon">🖼️</span>
+                    <div class="stat-info">
+                        <span class="stat-value" id="image-count">0</span>
+                        <span class="stat-label">Images</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">🎵</span>
+                    <div class="stat-info">
+                        <span class="stat-value" id="audio-count">0</span>
+                        <span class="stat-label">Audio</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">📹</span>
+                    <div class="stat-info">
+                        <span class="stat-value" id="video-count">0</span>
+                        <span class="stat-label">Videos</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">📦</span>
+                    <div class="stat-info">
+                        <span class="stat-value" id="total-count">0</span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Grid -->
+            <div class="media-grid" id="media-grid">
+                <!-- Media items will be loaded here -->
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <div class="empty-icon">📂</div>
+                <h3>No media files yet</h3>
+                <p>Upload your first media file to get started</p>
+                <button class="btn btn-primary" onclick="switchView('upload')">Upload Media</button>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <!-- Pagination will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Upload Page -->
+        <section id="upload-page" class="page">
+            <div class="page-header">
+                <h1>Upload Media</h1>
+                <p class="subtitle">Add images, audio, or video files to your collection</p>
+            </div>
+
+            <div class="upload-container">
+                <div class="upload-zone" id="upload-zone">
+                    <input type="file" id="file-input" multiple accept="image/*,audio/*,video/*" hidden>
+                    <div class="upload-icon">📤</div>
+                    <h3>Drag & Drop files here</h3>
+                    <p>or click to browse</p>
+                    <div class="supported-formats">
+                        <span class="format-badge">JPG</span>
+                        <span class="format-badge">PNG</span>
+                        <span class="format-badge">MP3</span>
+                        <span class="format-badge">WAV</span>
+                        <span class="format-badge">MP4</span>
+                        <span class="format-badge">AVI</span>
+                    </div>
+                </div>
+
+                <!-- Metadata Form -->
+                <div class="metadata-form" id="metadata-form" style="display: none;">
+                    <h3>Add Details (Optional)</h3>
+                    <div class="form-group">
+                        <label for="media-title">Title</label>
+                        <input type="text" id="media-title" placeholder="Enter a title">
+                    </div>
+                    <div class="form-group">
+                        <label for="media-description">Description</label>
+                        <textarea id="media-description" placeholder="Add a description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="media-tags">Tags (comma-separated)</label>
+                        <input type="text" id="media-tags" placeholder="nature, landscape, sunset">
+                    </div>
+                </div>
+
+                <!-- Upload Progress -->
+                <div class="upload-progress" id="upload-progress" style="display: none;">
+                    <div class="progress-header">
+                        <span class="progress-title">Uploading...</span>
+                        <span class="progress-percent" id="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p class="progress-status" id="progress-status">Preparing files...</p>
+                </div>
+
+                <!-- Upload Queue -->
+                <div class="upload-queue" id="upload-queue"></div>
+
+                <!-- Upload Button -->
+                <button class="btn btn-primary btn-large btn-center" id="upload-btn" disabled>
+                    <span class="btn-icon">⬆️</span>
+                    Upload Files
+                </button>
+            </div>
+        </section>
+
+        <!-- Search Page -->
+        <section id="search-page" class="page">
+            <div class="page-header">
+                <h1>Search Media</h1>
+                <p class="subtitle">Find similar content using Query By Example, Metadata, or Hybrid search</p>
+            </div>
+
+            <!-- Search Tabs -->
+            <div class="search-tabs">
+                <button class="search-tab active" data-search="qbe">Query By Example</button>
+                <button class="search-tab" data-search="metadata">By Metadata</button>
+                <button class="search-tab" data-search="hybrid">Hybrid Search</button>
+            </div>
+
+            <!-- QBE Search -->
+            <div class="search-panel active" id="qbe-panel">
+                <div class="qbe-container">
+                    <div class="qbe-upload" id="qbe-upload-zone">
+                        <input type="file" id="qbe-file-input" accept="image/*,audio/*,video/*" hidden>
+                        <div class="qbe-preview" id="qbe-preview">
+                            <div class="upload-icon">🔎</div>
+                            <p>Drop a file to find similar media</p>
+                        </div>
+                    </div>
+                    <div class="search-options">
+                        <div class="form-group">
+                            <label>Distance Metric</label>
+                            <select id="qbe-metric">
+                                <option value="euclidean">Euclidean</option>
+                                <option value="manhattan">Manhattan</option>
+                                <option value="cosine">Cosine</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Results</label>
+                            <input type="number" id="qbe-k" value="10" min="1" max="50">
+                        </div>
+                        <button class="btn btn-primary" id="qbe-search-btn" disabled>Search Similar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metadata Search -->
+            <div class="search-panel" id="metadata-panel">
+                <div class="search-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Media Type</label>
+                            <select id="meta-type">
+                                <option value="">All Types</option>
+                                <option value="image">Images</option>
+                                <option value="audio">Audio</option>
+                                <option value="video">Video</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Title Contains</label>
+                            <input type="text" id="meta-title" placeholder="Search by title">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tags</label>
+                            <input type="text" id="meta-tags" placeholder="tag1, tag2">
+                        </div>
+                        <div class="form-group">
+                            <label>Results Limit</label>
+                            <input type="number" id="meta-limit" value="20" min="1" max="100">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="meta-search-btn">Search</button>
+                </div>
+            </div>
+
+            <!-- Hybrid Search -->
+            <div class="search-panel" id="hybrid-panel">
+                <div class="hybrid-container">
+                    <div class="hybrid-qbe">
+                        <h4>Query File</h4>
+                        <div class="qbe-upload" id="hybrid-upload-zone">
+                            <input type="file" id="hybrid-file-input" accept="image/*,audio/*,video/*" hidden>
+                            <div class="qbe-preview" id="hybrid-preview">
+                                <div class="upload-icon small">📎</div>
+                                <p>Add query file</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hybrid-options">
+                        <h4>Filters & Weights</h4>
+                        <div class="form-group">
+                            <label>Title Filter</label>
+                            <input type="text" id="hybrid-title" placeholder="Optional title filter">
+                        </div>
+                        <div class="form-group">
+                            <label>Tags Filter</label>
+                            <input type="text" id="hybrid-tags" placeholder="tag1, tag2">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Distance Metric</label>
+                                <select id="hybrid-metric">
+                                    <option value="euclidean">Euclidean</option>
+                                    <option value="manhattan">Manhattan</option>
+                                    <option value="cosine">Cosine</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Results</label>
+                                <input type="number" id="hybrid-k" value="10" min="1" max="50">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Feature Weight</label>
+                                <input type="range" id="hybrid-feature-weight" min="0" max="1" step="0.1" value="0.7">
+                                <span id="feature-weight-val">0.7</span>
+                            </div>
+                            <div class="form-group">
+                                <label>Metadata Weight</label>
+                                <input type="range" id="hybrid-metadata-weight" min="0" max="1" step="0.1" value="0.3">
+                                <span id="metadata-weight-val">0.3</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="hybrid-search-btn" disabled>Search</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div class="search-results" id="search-results" style="display: none;">
+                <div class="results-header">
+                    <h3>Search Results</h3>
+                    <span class="results-count" id="results-count">0 results</span>
+                    <span class="query-time" id="query-time"></span>
+                </div>
+                <div class="results-grid" id="results-grid"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Media Modal -->
+    <div class="modal" id="media-modal">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close" onclick="closeModal()">&times;</button>
+            <div class="modal-body" id="modal-body">
+                <div class="preview-area" id="modal-preview">
+                    <!-- Media preview will be loaded here -->
+                </div>
+                <div class="media-details">
+                    <h2 id="modal-title">Media Title</h2>
+
+                    <!-- View Mode -->
+                    <div id="modal-view-mode">
+                        <div class="detail-row">
+                            <span class="label">Type</span>
+                            <span class="value" id="modal-type">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Size</span>
+                            <span class="value" id="modal-size">-</span>
+                        </div>
+                        <div class="detail-row" id="modal-dimensions-row">
+                            <span class="label">Dimensions</span>
+                            <span class="value" id="modal-dimensions">-</span>
+                        </div>
+                        <div class="detail-row" id="modal-duration-row">
+                            <span class="label">Duration</span>
+                            <span class="value" id="modal-duration">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Uploaded</span>
+                            <span class="value" id="modal-date">-</span>
+                        </div>
+                        <div class="detail-row" id="modal-tags-row">
+                            <span class="label">Tags</span>
+                            <span class="value" id="modal-tags">-</span>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button class="btn btn-primary" id="modal-find-similar" onclick="findSimilar()">🔍 Find
+                                Similar</button>
+                            <button class="btn btn-secondary" id="modal-edit" onclick="enableEditMode()">✏️
+                                Edit</button>
+                            <button class="btn btn-secondary" id="modal-download" onclick="downloadMedia()">⬇️
+                                Download</button>
+                            <button class="btn btn-danger" id="modal-delete" onclick="deleteMedia()">🗑️ Delete</button>
+                        </div>
+                    </div>
+
+                    <!-- Edit Mode -->
+                    <div id="modal-edit-mode" style="display: none;">
+                        <div class="form-group">
+                            <label for="edit-title">Title</label>
+                            <input type="text" id="edit-title" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-description">Description</label>
+                            <textarea id="edit-description" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-tags">Tags (comma-separated)</label>
+                            <input type="text" id="edit-tags" class="form-control">
+                        </div>
+
+                        <div class="modal-actions">
+                            <button class="btn btn-primary" id="modal-save" onclick="saveMediaChanges()">💾 Save
+                                Changes</button>
+                            <button class="btn btn-secondary" id="modal-cancel-edit"
+                                onclick="disableEditMode()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Find Similar Options Dialog -->
+        <div class="modal" id="similar-modal">
+            <div class="modal-overlay" onclick="closeSimilarModal()"></div>
+            <div class="modal-content" style="max-width: 400px;">
+                <button class="modal-close" onclick="closeSimilarModal()">&times;</button>
+                <div class="modal-body">
+                    <h2>🔍 Find Similar Media</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Search for media similar to the selected item</p>
+
+                    <div class="form-group">
+                        <label for="similar-method">Distance Method</label>
+                        <select id="similar-method" class="form-control">
+                            <option value="euclidean">Euclidean Distance</option>
+                            <option value="manhattan">Manhattan Distance</option>
+                            <option value="cosine">Cosine Similarity</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="similar-count">Number of Results</label>
+                        <select id="similar-count" class="form-control">
+                            <option value="5">5 results</option>
+                            <option value="10" selected>10 results</option>
+                            <option value="20">20 results</option>
+                            <option value="50">50 results</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" onclick="executeFindSimilar()">🔍 Search</button>
+                        <button class="btn btn-secondary" onclick="closeSimilarModal()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Comparison Modal -->
+        <div class="modal" id="comparison-modal">
+            <div class="modal-overlay" onclick="closeComparisonModal()"></div>
+            <div class="modal-content comparison-modal-content">
+                <button class="modal-close" onclick="closeComparisonModal()">&times;</button>
+                <div class="modal-body">
+                    <h2>🔬 Feature Comparison</h2>
+                    <p class="comparison-subtitle">Visualizing why these files are similar</p>
+
+                    <!-- Thumbnails Side by Side -->
+                    <div class="comparison-thumbnails">
+                        <div class="comparison-item">
+                            <img id="comparison-query-thumb" src="" alt="Query">
+                            <span class="comparison-label">Query</span>
+                            <span class="comparison-title" id="comparison-query-title"></span>
+                        </div>
+                        <div class="comparison-arrow">→</div>
+                        <div class="comparison-item">
+                            <img id="comparison-result-thumb" src="" alt="Result">
+                            <span class="comparison-label">Result</span>
+                            <span class="comparison-title" id="comparison-result-title"></span>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div class="comparison-loading" id="comparison-loading" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <p>Loading feature comparison...</p>
+                    </div>
+
+                    <!-- Thumbnails (will be shown after loading) -->
+                    <!-- Already defined above at line 436 -->
+
+                    <!-- Similarity Breakdown -->
+                    <div class="similarity-breakdown" id="similarity-breakdown" style="display: none;">
+                        <h3>Similarity Breakdown</h3>
+                        <div class="breakdown-bars">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                    <!-- Image Feature Charts -->
+                    <div class="image-charts media-charts" id="image-charts" style="display: none;">
+                        <div class="feature-row">
+                            <div class="chart-card">
+                                <h4>🎨 Color Histogram (HSV)</h4>
+                                <div class="chart-canvas-container">
+                                    <canvas id="color-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="note-card">
+                                <h4>📝 How to read</h4>
+                                <div class="note-content">
+                                    <p>Color distribution in HSV color space.</p>
+                                    <ul>
+                                        <li><strong>H1-H10</strong>: Hue (red, orange, green, blue...)</li>
+                                        <li><strong>S1-S10</strong>: Saturation (gray → vivid)</li>
+                                        <li><strong>V1-V10</strong>: Value (dark → light)</li>
+                                    </ul>
+                                    <p class="note-tip">💡 Similar bars = similar colors</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="chart-card">
+                                <h4>🔲 Texture (LBP Pattern)</h4>
+                                <div class="chart-canvas-container">
+                                    <canvas id="texture-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="note-card">
+                                <h4>📝 How to read</h4>
+                                <div class="note-content">
+                                    <p>Local Binary Pattern captures surface texture.</p>
+                                    <ul>
+                                        <li><strong>Points</strong>: Texture pattern frequency</li>
+                                        <li><strong>Height</strong>: How often pattern appears</li>
+                                    </ul>
+                                    <p class="note-tip">💡 Overlapping curves = similar texture</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="chart-card">
+                                <h4>🧠 Deep Features (MobileNetV2)</h4>
+                                <div class="chart-canvas-container">
+                                    <canvas id="deep-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="note-card">
+                                <h4>📝 How to read</h4>
+                                <div class="note-content">
+                                    <p>Neural network extracted semantic features.</p>
+                                    <ul>
+                                        <li><strong>G1-G16</strong>: Feature groups (1280D total)</li>
+                                        <li><strong>Groups</strong>: Visual concepts (shapes, objects)</li>
+                                    </ul>
+                                    <p class="note-tip">💡 Detects objects, not just colors!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Audio Feature Charts -->
+                    <div class="audio-charts media-charts" id="audio-charts" style="display: none;">
+                        <div class="feature-row">
+                            <div class="chart-card">
+                                <h4>🎵 MFCC Features</h4>
+                                <div class="chart-canvas-container">
+                                    <canvas id="mfcc-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="note-card">
+                                <h4>📝 How to read</h4>
+                                <div class="note-content">
+                                    <p>Mel-Frequency Cepstral Coefficients capture audio timbre.</p>
+                                    <ul>
+                                        <li><strong>MFCC 1-13</strong>: Core frequency patterns</li>
+                                        <li><strong>Delta</strong>: Rate of change in MFCCs</li>
+                                        <li><strong>Delta-Delta</strong>: Acceleration of changes</li>
+                                    </ul>
+                                    <p class="note-tip">💡 Similar curves = similar sound texture</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="chart-card">
+                                <h4>🌊 Spectral Features</h4>
+                                <div class="chart-canvas-container">
+                                    <canvas id="spectral-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="note-card">
+                                <h4>📝 How to read</h4>
+                                <div class="note-content">
+                                    <p>Frequency-domain audio characteristics.</p>
+                                    <ul>
+                                        <li><strong>Centroid</strong>: Brightness of sound</li>
+                                        <li><strong>Rolloff</strong>: High frequency content</li>
+                                        <li><strong>Bandwidth</strong>: Frequency spread</li>
+                                        <li><strong>Flatness</strong>: Noise vs. tonal content</li>
+                                    </ul>
+                                    <p class="note-tip">💡 Similar bars = similar spectral profile</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="chart-card">
+                                <h4>📊 Waveform Statistics</h4>
+                                <div class="chart-canvas-container">
+                                    <canvas id="waveform-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="note-card">
+                                <h4>📝 How to read</h4>
+                                <div class="note-content">
+                                    <p>Time-domain waveform properties.</p>
+                                    <ul>
+                                        <li><strong>RMS</strong>: Average loudness</li>
+                                        <li><strong>Peak</strong>: Maximum amplitude</li>
+                                        <li><strong>Dynamic Range</strong>: Loudness variation</li>
+                                    </ul>
+                                    <p class="note-tip">💡 Similar values = similar dynamics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video Feature Charts -->
+                    <div class="video-charts media-charts" id="video-charts" style="display: none;">
+                        <div class="feature-row">
+                            <div class="chart-card">
+                                <h4>🎬 Keyframe Features</h4>
+                                <div class="chart-canvas-container">
+                                    <canvas id="keyframe-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="note-card">
+                                <h4>📝 How to read</h4>
+                                <div class="note-content">
+                                    <p>Deep learning features from representative frames.</p>
+                                    <ul>
+                                        <li><strong>K1-K16</strong>: Visual content groups</li>
+                                        <li><strong>Groups</strong>: Objects and scenes detected</li>
+                                    </ul>
+                                    <p class="note-tip">💡 Similar bars = similar visual content</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="chart-card">
+                                <h4>🏃 Motion Features</h4>
+                                <div class="chart-canvas-container">
+                                    <canvas id="motion-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="note-card">
+                                <h4>📝 How to read</h4>
+                                <div class="note-content">
+                                    <p>Optical flow and movement patterns.</p>
+                                    <ul>
+                                        <li><strong>M1-M16</strong>: Motion vector groups</li>
+                                        <li><strong>Height</strong>: Motion intensity</li>
+                                    </ul>
+                                    <p class="note-tip">💡 Similar curves = similar movement</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="chart-card">
+                                <h4>🎞️ Scene Statistics</h4>
+                                <div class="chart-canvas-container">
+                                    <canvas id="scene-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="note-card">
+                                <h4>📝 How to read</h4>
+                                <div class="note-content">
+                                    <p>Overall video characteristics and scene properties.</p>
+                                    <ul>
+                                        <li><strong>Duration/FPS</strong>: Video metadata</li>
+                                        <li><strong>Brightness/Contrast</strong>: Visual properties</li>
+                                        <li><strong>Complexity</strong>: Scene detail level</li>
+                                    </ul>
+                                    <p class="note-tip">💡 Similar values = similar video style</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toast-container"></div>
+
+        <script src="/static/js/app.js?v=19"></script>
+</body>
+
+</html>
