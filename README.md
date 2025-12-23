@@ -43,8 +43,7 @@ brew install postgresql python3
 ### 1. Clone or Download the Project
 
 ```bash
-git clone <repository-url>
-cd Tubes
+git clone https://github.com/diazabdul/multimedia-dbms.git
 ```
 
 Or download and extract the ZIP file to your desired location.
