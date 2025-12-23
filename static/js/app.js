@@ -698,9 +698,10 @@ function displayResults(data, elapsedTime = null) {
     const queryTimeEl = document.getElementById('query-time');
     results.style.display = 'block';
 
-    // Store query media ID for comparison (when using existing media)
+    // Store query media ID and metric for comparison (when using existing media)
     state.lastSearchQueryMediaId = data.query_media_id || state.qbeMediaId || null;
     state.lastSearchMediaType = data.media_type || null;
+    state.lastSearchMetric = data.metric || 'cosine'; // Store the metric used
 
     // Handle both results_count (metadata) and total_results (QBE) formats
     const totalResults = data.total_results || data.results_count || data.results?.length || 0;
@@ -730,7 +731,7 @@ function displayResults(data, elapsedTime = null) {
         <div class="result-card" data-id="${r.id}" data-media-type="${r.media_type || state.lastSearchMediaType}">
             ${r.thumbnail_url ? `<img class="thumbnail" src="${r.thumbnail_url}" loading="lazy">` : `<div class="thumbnail-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>`}
             ${r.similarity !== undefined ? `<span class="similarity-badge">${(r.similarity * 100).toFixed(1)}%</span>` : (r.distance !== undefined ? `<span class="similarity-badge" style="background:#ff9800;">D: ${r.distance.toFixed(2)}</span>` : '')}
-            ${showCompareBtn ? `<button class="compare-btn" onclick="event.stopPropagation(); openComparisonModal(${state.lastSearchQueryMediaId}, ${r.id})" title="Compare Features">🔬</button>` : ''}
+            ${showCompareBtn ? `<button class="compare-btn" onclick="event.stopPropagation(); openComparisonModal(${state.lastSearchQueryMediaId}, ${r.id}, '${state.lastSearchMetric || 'cosine'}')" title="Compare Features">🔬</button>` : ''}
             <div class="card-info">
                 <div class="card-title">${r.title || r.original_filename}</div>
             </div>
@@ -1080,8 +1081,8 @@ function closeComparisonModal() {
     document.querySelectorAll('.media-charts').forEach(el => el.style.display = 'none');
 }
 
-async function openComparisonModal(queryId, resultId) {
-    console.log('[MMDB] Opening comparison modal:', queryId, 'vs', resultId);
+async function openComparisonModal(queryId, resultId, metric = 'cosine') {
+    console.log('[MMDB] Opening comparison modal:', queryId, 'vs', resultId, 'metric:', metric);
 
     const modal = document.getElementById('comparison-modal');
     const loading = document.getElementById('comparison-loading');
@@ -1098,8 +1099,8 @@ async function openComparisonModal(queryId, resultId) {
     thumbnails.style.display = 'none';
 
     try {
-        // Fetch comparison data from API
-        const response = await fetch(`${API_BASE}/compare/${queryId}/${resultId}`);
+        // Fetch comparison data from API with metric parameter
+        const response = await fetch(`${API_BASE}/compare/${queryId}/${resultId}?metric=${metric}`);
         const data = await response.json();
 
         if (!response.ok) {

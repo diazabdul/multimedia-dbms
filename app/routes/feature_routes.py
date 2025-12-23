@@ -26,7 +26,7 @@ def vector_to_list(vector):
 
 
 def calculate_similarity(vec1, vec2, metric='cosine'):
-    """Calculate similarity between two vectors"""
+    """Calculate similarity between two vectors using the same method as search results"""
     if vec1 is None or vec2 is None:
         return 0.0
     
@@ -36,21 +36,24 @@ def calculate_similarity(vec1, vec2, metric='cosine'):
     if len(arr1) != len(arr2):
         return 0.0
     
+    # Calculate distance first
     if metric == 'cosine':
-        # Cosine similarity = 1 - cosine_distance
         norm1 = np.linalg.norm(arr1)
         norm2 = np.linalg.norm(arr2)
         if norm1 == 0 or norm2 == 0:
             return 0.0
-        return float(np.dot(arr1, arr2) / (norm1 * norm2))
+        cosine_sim = float(np.dot(arr1, arr2) / (norm1 * norm2))
+        distance = 1.0 - cosine_sim
     elif metric == 'euclidean':
-        # Convert euclidean distance to similarity
-        dist = np.linalg.norm(arr1 - arr2)
-        return float(1 / (1 + dist))
+        distance = float(np.linalg.norm(arr1 - arr2))
     elif metric == 'manhattan':
-        dist = np.sum(np.abs(arr1 - arr2))
-        return float(1 / (1 + dist))
-    return 0.0
+        distance = float(np.sum(np.abs(arr1 - arr2)))
+    else:
+        return 0.0
+    
+    # Convert distance to similarity using the same method as knn.py
+    from app.search.distance import distance_to_similarity, DistanceMetric
+    return distance_to_similarity(distance, metric)
 
 
 def downsample_histogram(histogram, target_bins=32):
@@ -188,6 +191,11 @@ def compare_features(query_id, result_id):
     Compare features between two media items
     Returns visualization data and per-feature similarity scores
     """
+    from flask import request
+    
+    # Get metric from query parameter, default to 'cosine'
+    metric = request.args.get('metric', 'cosine').lower()
+    
     # Get both media items
     query_media = Media.query.get(query_id)
     result_media = Media.query.get(result_id)
@@ -235,12 +243,12 @@ def compare_features(query_id, result_id):
         q_combined = vector_to_list(q_feat.combined_features)
         r_combined = vector_to_list(r_feat.combined_features)
         
-        # Calculate per-feature similarities
+        # Calculate per-feature similarities using the specified metric
         comparison['similarities'] = {
-            'color_histogram': round(calculate_similarity(q_color, r_color, 'cosine') * 100, 1),
-            'texture_lbp': round(calculate_similarity(q_lbp, r_lbp, 'cosine') * 100, 1),
-            'deep_features': round(calculate_similarity(q_deep, r_deep, 'cosine') * 100, 1),
-            'overall': round(calculate_similarity(q_combined, r_combined, 'cosine') * 100, 1)
+            'color_histogram': round(calculate_similarity(q_color, r_color, metric) * 100, 1),
+            'texture_lbp': round(calculate_similarity(q_lbp, r_lbp, metric) * 100, 1),
+            'deep_features': round(calculate_similarity(q_deep, r_deep, metric) * 100, 1),
+            'overall': round(calculate_similarity(q_combined, r_combined, metric) * 100, 1)
         }
         
         # Prepare visualization data
@@ -283,10 +291,10 @@ def compare_features(query_id, result_id):
         r_combined = vector_to_list(r_feat.combined_features)
         
         comparison['similarities'] = {
-            'mfcc': round(calculate_similarity(q_mfcc, r_mfcc, 'cosine') * 100, 1),
-            'spectral': round(calculate_similarity(q_spectral, r_spectral, 'cosine') * 100, 1),
-            'waveform': round(calculate_similarity(q_waveform, r_waveform, 'cosine') * 100, 1),
-            'overall': round(calculate_similarity(q_combined, r_combined, 'cosine') * 100, 1)
+            'mfcc': round(calculate_similarity(q_mfcc, r_mfcc, metric) * 100, 1),
+            'spectral': round(calculate_similarity(q_spectral, r_spectral, metric) * 100, 1),
+            'waveform': round(calculate_similarity(q_waveform, r_waveform, metric) * 100, 1),
+            'overall': round(calculate_similarity(q_combined, r_combined, metric) * 100, 1)
         }
         
         comparison['features'] = {
@@ -326,10 +334,10 @@ def compare_features(query_id, result_id):
         r_combined = vector_to_list(r_feat.combined_features)
         
         comparison['similarities'] = {
-            'keyframe': round(calculate_similarity(q_keyframe, r_keyframe, 'cosine') * 100, 1),
-            'motion': round(calculate_similarity(q_motion, r_motion, 'cosine') * 100, 1),
-            'scene_stats': round(calculate_similarity(q_scene, r_scene, 'cosine') * 100, 1),
-            'overall': round(calculate_similarity(q_combined, r_combined, 'cosine') * 100, 1)
+            'keyframe': round(calculate_similarity(q_keyframe, r_keyframe, metric) * 100, 1),
+            'motion': round(calculate_similarity(q_motion, r_motion, metric) * 100, 1),
+            'scene_stats': round(calculate_similarity(q_scene, r_scene, metric) * 100, 1),
+            'overall': round(calculate_similarity(q_combined, r_combined, metric) * 100, 1)
         }
         
         comparison['features'] = {
